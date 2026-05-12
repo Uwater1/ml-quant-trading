@@ -113,6 +113,8 @@ def compute_legacy_set(
         v = torch.where(torch.isfinite(v), v, torch.zeros_like(v))
         if neutralize:
             v, _ = cs_zscore(v, m)
+        if torch.isnan(v).any():
+            print(f"Factor {n} has NaNs after processing!")
         cols.append(v)
         joint = m if joint is None else joint & m
     factors = torch.stack(cols, dim=-1)
