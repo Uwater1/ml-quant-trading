@@ -110,11 +110,19 @@ def compute_legacy_set(
     cols, joint = [], None
     for n in names:
         v, m = LEGACY_REGISTRY[n](panel)
+        if n == "stock_019":
+            print(f"DEBUG stock_019: raw has NaNs: {torch.isnan(v).any().item()}, raw has inf: {torch.isinf(v).any().item()}")
         v = torch.where(torch.isfinite(v), v, torch.zeros_like(v))
+        if n == "stock_019":
+            print(f"DEBUG stock_019: after isfinite has NaNs: {torch.isnan(v).any().item()}")
         if neutralize:
             v, _ = cs_zscore(v, m)
-        if torch.isnan(v).any():
-            print(f"Factor {n} has NaNs after processing!")
+        if n == "stock_019":
+            print(f"DEBUG stock_019: after cs_zscore has NaNs: {torch.isnan(v).any().item()}")
+            if torch.isnan(v).any():
+                nan_mask = torch.isnan(v)
+                print(f"DEBUG stock_019: mask status at NaNs: {m[nan_mask].tolist()[:10]}")
+                print(f"DEBUG stock_019: value count at NaNs: {nan_mask.sum().item()}")
         cols.append(v)
         joint = m if joint is None else joint & m
     factors = torch.stack(cols, dim=-1)
