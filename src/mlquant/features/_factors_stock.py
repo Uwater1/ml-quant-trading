@@ -240,6 +240,9 @@ def stock_019(panel: Panel) -> Tuple[Tensor, Tensor]:
     num = -(panel.low - panel.close) * panel.open.pow(5)
     den = (panel.close - panel.high) * panel.close.pow(5)
     out = num / den.abs().clamp_min(1e-12).copysign(den + 1e-12)
+    # Clamp extremely large values to prevent sum of squares from overflowing float32
+    # and causing cs_zscore to produce NaNs.
+    out = out.clamp(min=-1e10, max=1e10)
     return out * panel.mask.float(), panel.mask
 
 
